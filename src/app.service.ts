@@ -6,7 +6,8 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { KafkaProducerService } from './kafka/producer.service';
 import { KAFKA_TOPICS } from './kafka/topics';
-
+import { LoginUserPayload } from './types/LoginUserPayload.interface';
+import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class AppService {
   constructor(
@@ -75,5 +76,49 @@ export class AppService {
         message: `User creation failed, Something went wrong.`,
       };
     }
+  }
+
+  async loginUser(data: LoginUserPayload) {
+    const { email, password } = data;
+
+    // Check whether the User is existing
+    const user = await this._authEntity.findOneBy({ email });
+
+    if (!user) {
+      return {
+        status: HttpStatus.BAD_REQUEST,
+        message: `No User found for provided email!`,
+      };
+    }
+
+    // Check Password
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      return {
+        status: HttpStatus.BAD_REQUEST,
+        message: `Provided Credentials are wrong! Please Try Again`,
+      };
+    }
+
+    //  Generate JWT Token
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const token = await jwt.sign(payload, 'secretKey');
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Login Successful',
+      accessToken: token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+    };
   }
 }
