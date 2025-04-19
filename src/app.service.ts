@@ -37,6 +37,7 @@ export class AppService {
     const newUser = {
       email: email,
       password: passwordHash,
+      role: role,
     };
 
     const response = await this._authEntity.save(newUser);

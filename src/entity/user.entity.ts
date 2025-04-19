@@ -10,4 +10,7 @@ export class AuthEntity {
 
   @Column()
   password: string;
+
+  @Column()
+  role: string;
 }
