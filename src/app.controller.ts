@@ -1,6 +1,7 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { RegisterUserPayload } from './types/RegisterUserPayload.interface';
 
 @Controller('api/auth')
 export class AppController {
@@ -8,16 +9,7 @@ export class AppController {
 
   @MessagePattern('auth.register')
   @Post('register')
-  async register(@Payload() data: { email: string; password: string }) {
-    console.log('Registering user:', data);
-
-    // return sample data
-    return {
-      message: 'User created successfully',
-      user: {
-        email: data.email,
-        id: Math.floor(Math.random() * 1000),
-      },
-    };
+  async register(@Payload() data: RegisterUserPayload) {
+    return this.appService.registerUser(data);
   }
 }
