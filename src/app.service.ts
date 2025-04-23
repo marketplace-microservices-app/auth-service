@@ -108,17 +108,56 @@ export class AppService {
       role: user.role,
     };
 
-    const token = await jwt.sign(payload, 'secretKey');
+    // Access Token
+    const accessToken = jwt.sign(payload, 'accessSecretKey', {
+      expiresIn: '15m',
+    });
+
+    // Refresh Token
+    const refreshToken = jwt.sign(payload, 'refreshSecretKey', {
+      expiresIn: '7d',
+    });
 
     return {
       status: HttpStatus.OK,
       message: 'Login Successful',
-      accessToken: token,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
       user: {
         id: user.id,
         email: user.email,
         role: user.role,
       },
     };
+  }
+
+  async refreshToken(token: string) {
+    try {
+      const payload = jwt.verify(token, 'refreshSecretKey');
+
+      const user = await this._authEntity.findOneBy({ id: payload.sub });
+      if (!user || !token) {
+        throw new Error('Invalid refresh token');
+      }
+
+      const newAccessToken = jwt.sign(
+        {
+          sub: user.id,
+          email: user.email,
+          role: user.role,
+        },
+        'accessSecretKey',
+        { expiresIn: '15m' },
+      );
+
+      return {
+        accessToken: newAccessToken,
+      };
+    } catch (error) {
+      return {
+        status: HttpStatus.UNAUTHORIZED,
+        message: 'Refresh token invalid or expired',
+      };
+    }
   }
 }
