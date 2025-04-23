@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { RegisterUserPayload } from './types/RegisterUserPayload.interface';
@@ -18,5 +18,11 @@ export class AppController {
   @Post('login')
   async login(@Payload() data: LoginUserPayload) {
     return this.appService.loginUser(data);
+  }
+
+  @MessagePattern('auth.refresh')
+  @Post('refresh')
+  async refreshToken(@Body('refreshToken') token) {
+    return await this.appService.refreshToken(token);
   }
 }
