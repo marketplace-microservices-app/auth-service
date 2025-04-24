@@ -3,7 +3,7 @@ import { RegisterUserPayload } from './types/RegisterUserPayload.interface';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthEntity } from './entity/user.entity';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+const bcrypt = require('bcryptjs');
 import { KafkaProducerService } from './kafka/producer.service';
 import { KAFKA_TOPICS } from './kafka/topics';
 import { LoginUserPayload } from './types/LoginUserPayload.interface';
@@ -32,7 +32,7 @@ export class AppService {
 
     // Step 2 - Password Hashing using bcrypt
     const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
+    const passwordHash = await bcrypt.hashSync(password, 10);
 
     // Step 3 - Save the User to authData table
     const newUser = {
